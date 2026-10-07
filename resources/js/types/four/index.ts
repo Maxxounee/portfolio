@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import { type Ref } from 'vue';
+import { ICameraControls, IDebugGui } from "@/types/four/controls";
 
 /* =========================================================
  *  Common
@@ -163,11 +164,15 @@ export interface IDirectorArg {
     modelManager: IModelManager;
     animation: IAnimationManager;
     lights: ILight[];
+    controls?: ICameraControls;
+    debug?: IDebugGui;
     onFrame?: FrameCallback;
 }
 
 export interface IDirector extends IDestroyable {
     readonly isRunning: boolean;
+    readonly models: IModelManager;
+    readonly controls: ICameraControls | null;
 
     start(): void;
 
@@ -265,6 +270,33 @@ export interface IRotatorArg {
 
 export interface IRotatorCtor {
     new(arg: IRotatorArg): IRotator;
+}
+
+/* =========================================================
+ *  Colorist
+ * =======================================================*/
+
+export type ColorLike = number | string | THREE.Color
+
+export interface IColorist extends IAnimatable {
+    to(color: ColorLike, duration?: number): void;
+
+    set(color: ColorLike): void;
+}
+
+export interface IColoristArg {
+    model: IModel;
+    easing?: EasingFn;
+    /**
+     * Какой материал красить.
+     * - 'all' (по умолчанию) — все материалы модели
+     * - число — индекс материала в каждом меше
+     */
+    materialIndex?: number | 'all';
+}
+
+export interface IColoristCtor {
+    new(arg: IColoristArg): IColorist;
 }
 
 /* =========================================================

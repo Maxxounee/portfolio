@@ -29,8 +29,6 @@ export class ModelManager implements IModelManager {
     }
 
     public add(model: IModel): void {
-        // Защита от дубликатов по имени
-        console.log('add', model);
         if (this.registry.has(model.name)) {
             console.warn(
                 `[ModelManager] Model with name "${model.name}" already exists. Skipping.`
