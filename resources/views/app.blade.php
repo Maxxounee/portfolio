@@ -8,7 +8,7 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     @fonts
     @vite([
-		'resources/sass/app.scss',
+		 'resources/style/style.scss',
 		 'resources/js/app.ts',
 		 "resources/js/pages/{$page['component']}.vue"
 		 ])
