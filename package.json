@@ -21,7 +21,6 @@
         "reset-css": "^5.0.2",
         "tailwind-merge": "^3.2.0",
         "tailwindcss": "^4.1.1",
-        "three": "^0.186.1",
         "typescript": "^5.2.2",
         "vite": "^8.0.0",
         "vue": "^3.5.13"
@@ -29,7 +28,6 @@
     "devDependencies": {
         "@laravel/vite-plugin-wayfinder": "^0.1.3",
         "@types/node": "^22.13.5",
-        "@types/three": "^0.186.0",
         "sass-embedded": "^1.105.1",
         "vite-plus": "0.3.0",
         "vue-tsc": "^2.2.4"
