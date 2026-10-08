@@ -1,39 +1,51 @@
+// @ts-ignore
+import tailwindcss from '@tailwindcss/vite';
+// @ts-ignore
+import vue from '@vitejs/plugin-vue';
+// @ts-ignore
+import { bunny } from 'laravel-vite-plugin/fonts';
+// @ts-ignore-off
 import inertia from '@inertiajs/vite';
 import { wayfinder } from '@laravel/vite-plugin-wayfinder';
-import tailwindcss from '@tailwindcss/vite';
-import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
-import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig, lazyPlugins } from 'vite-plus';
+import { templateCompilerOptions } from '@tresjs/core';
 
 export default defineConfig({
-	plugins: lazyPlugins(() => [
-		laravel({
-			input: [
-				'resources/sass/app.scss',
-				'resources/js/app.ts',
-			],
-			refresh: true,
-			fonts: [
-				bunny('Instrument Sans', {
-					weights: [400, 500, 600],
-				}),
-			],
-		}),
-		inertia(),
-		tailwindcss(),
+	plugins: [
+		...lazyPlugins(() => [
+			laravel({
+				input: [
+					'resources/sass/app.scss',
+					'resources/js/app.ts',
+				],
+				refresh: true,
+				fonts: [
+					bunny('Instrument Sans', {
+						weights: [400, 500, 600],
+					}),
+				],
+			}),
+			inertia(),
+			tailwindcss(),
+
+			wayfinder({
+				formVariants: true,
+			}),
+		]),
 		vue({
+			compilerOptions: {
+				isCustomElement: (tag) => tag.startsWith('Tres'),
+			},
 			template: {
 				transformAssetUrls: {
 					base: null,
 					includeAbsolute: false,
 				},
 			},
+			...templateCompilerOptions,
 		}),
-		wayfinder({
-			formVariants: true,
-		}),
-	]),
+	],
 	server: {
 		watch: {
 			ignored: [

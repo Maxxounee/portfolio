@@ -49,6 +49,7 @@ module.exports = {
         'multiline-ternary': ['error', 'never'],
         'arrow-parens': ['error', 'always'],
         'no-console': 'off',
+        '@typescript-eslint/ban-ts-comment': 'off',
     },
     ignorePatterns: ['node_modules/', 'vendor/', 'public/', 'dist/'],
 };

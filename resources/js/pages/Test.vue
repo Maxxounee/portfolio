@@ -1,9 +1,13 @@
 <template>
-	<div>sdaasddsa</div>
-	<div class="test">132sdasasd</div>
+	<div class="Test">
+		<ThreeWrapper />
+	</div>
 </template>
 <script setup lang="ts">
+import ThreeWrapper from "@/components/Three/ThreeWrapper.vue";
 </script>
-<style scoped>
-</style>
+<style scoped lang="scss">
+.Test {
 
+}
+</style>
