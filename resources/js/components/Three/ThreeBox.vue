@@ -22,7 +22,7 @@ const props = defineProps<{
 }>();
 
 const boxRef = shallowRef<TresInstance | null>(null);
-useTresGui({ cameraRef });
+// useTresGui({ cameraRef });
 // --- Анимация куба ---
 
 watch(() => props.position, ([x, y, z]) => {

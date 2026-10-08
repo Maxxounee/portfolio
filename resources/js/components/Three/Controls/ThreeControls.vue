@@ -15,9 +15,10 @@
     />
     <TresAmbientLight :intensity="1"/>
     <ThreeMeshButton
-        v-for="(pos, i) in buttonPositions"
+        v-for="(val, i) in buttonPositions"
         :key="i"
-        :position="pos"
+        :position="val.pos"
+        @click="val.cb"
     />
 </template>
 <script setup lang="ts">
@@ -27,7 +28,7 @@ import { useTresGui } from '@/utils/tres/useTresGui';
 
 /* ---------------- Камера ---------------- */
 
-const viewHeight = ref(6);
+const viewHeight = ref(20);
 const aspect = ref(window.innerWidth / window.innerHeight);
 const viewWidth = computed(() => viewHeight.value * aspect.value);
 
@@ -39,34 +40,43 @@ useTresGui({ cameraRef });
 const buttonCount = 3;
 const buttonWidth = 2;
 const gap = 0.3;
-const bottomMarginPx = 90;
+const bottomMarginPx = 0;
 
 const unitsPerPixel = computed(() => viewHeight.value / window.innerHeight);
 const bottomMargin = computed(() => bottomMarginPx * unitsPerPixel.value);
 
-/**
- * ВАЖНО: камера смотрит сверху вниз.
- * На экране:
- *   X  → влево/вправо
- *   Z  → вверх/вниз (минус — вверх, плюс — вниз)
- *
- * Поэтому «низ экрана» = положительный Z.
- *   нижний край видимой области по Z = +viewHeight / 2
- */
 const bottomZ = computed(() =>
-    viewHeight.value / 2 - bottomMargin.value,
+    viewHeight.value / 2 - 1.4,
 );
 
 const totalWidth = buttonCount * buttonWidth + (buttonCount - 1) * gap;
 
-const buttonPositions = computed<[number, number, number][]>(() =>
-    Array.from({ length: buttonCount }, (_, i) => {
-        const x = -totalWidth / 2 + buttonWidth / 2 + i * (buttonWidth + gap);
-        return [x, 0, bottomZ.value];
-    }),
+// const buttonPositions = computed(() =>
+//
+//     Array.from({ length: buttonCount }, (_, i) => {
+//         const x = -totalWidth / 2 + buttonWidth / 2 + i * (buttonWidth + gap);
+//         return {
+//             pos: [x, 0, bottomZ.value],
+//             cb: () => emit('click', -50),
+//         };
+//     }),
+// );
+const buttonPositions = computed(() => {
+        return [
+            { pos: undefined, rot: [0, -30, 0] },
+            { pos: undefined, rot: [0, 0, 30] },
+            { pos: undefined, rot: [0, 30, 0] },
+        ].map((val, i) => {
+            const x = -totalWidth / 2 + buttonWidth / 2 + i * (buttonWidth + gap);
+
+            return {
+                pos: [x, 0, bottomZ.value],
+                cb: () => emit('click', val.rot),
+            };
+        });
+    }
 );
 
-/* ---------------- Ресайз ---------------- */
 
 const updateAspect = (): void => {
     aspect.value = window.innerWidth / window.innerHeight;
@@ -80,9 +90,9 @@ onBeforeUnmount(() => {
     window.removeEventListener('resize', updateAspect);
 });
 
-/* ---------------- Клики ---------------- */
-
+const emit = defineEmits(['click']);
 const onClick = (i: number): void => {
     console.log('button', i);
+    emit('click');
 };
 </script>
