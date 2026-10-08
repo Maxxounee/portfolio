@@ -32,6 +32,7 @@ export class Model implements IModel {
     }
 
     public destroy(): void {
+        // 1. освободить GPU-ресурсы всех мешей
         this.instance.traverse((obj) => {
             if (obj instanceof THREE.Mesh) {
                 obj.geometry?.dispose();
@@ -44,7 +45,7 @@ export class Model implements IModel {
 
                     // текстуры материала
                     for (const key of Object.keys(m)) {
-                        const value = (m as unknown as Record<string, unknown>)[key];
+                        const value = ( m as unknown as Record<string, unknown> )[key];
                         if (value instanceof THREE.Texture) {
                             value.dispose();
                         }
@@ -55,6 +56,7 @@ export class Model implements IModel {
             }
         });
 
+        // 2. убрать из родителя
         this.instance.removeFromParent();
         this.instance.clear();
     }

@@ -7,13 +7,10 @@ export class Mover implements IMover {
     private readonly model: IModel;
     private readonly easing: EasingFn;
     private current: Tween<THREE.Vector3> | null = null;
-    private readonly target = new THREE.Vector3();
 
     constructor(arg: IMoverArg) {
         this.model = arg.model;
         this.easing = arg.easing ?? easeInOutQuad;
-        const p = this.model.instance.position;
-        this.target.set(p.x, p.y, p.z);
     }
 
     public get isAnimating(): boolean {
@@ -21,32 +18,19 @@ export class Mover implements IMover {
     }
 
     public to(x: number, y: number, z: number, duration = 0.4): void {
-        this.target.set(x, y, z);
-        this.animateToTarget(duration);
-    }
-
-    public by(dx: number, dy: number, dz: number, duration = 0.4): void {
-        this.target.x += dx;
-        this.target.y += dy;
-        this.target.z += dz;
-        this.animateToTarget(duration);
-    }
-
-    private animateToTarget(duration: number): void {
         const p = this.model.instance.position;
-        const from = new THREE.Vector3(p.x, p.y, p.z);
-        const to = this.target.clone();
-        if (from.equals(to)) {
-            this.cancel();
-            return;
-        }
-        this.cancel();
-
         this.current = new Tween<THREE.Vector3>({
-            from, to, duration,
+            from: new THREE.Vector3(p.x, p.y, p.z),
+            to: new THREE.Vector3(x, y, z),
+            duration,
             easing: this.easing,
             apply: (v) => this.model.setPosition(v.x, v.y, v.z),
         });
+    }
+
+    public by(dx: number, dy: number, dz: number, duration = 0.4): void {
+        const p = this.model.instance.position;
+        this.to(p.x + dx, p.y + dy, p.z + dz, duration);
     }
 
     public set(x: number, y: number, z: number): void {

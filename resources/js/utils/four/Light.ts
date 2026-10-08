@@ -74,6 +74,8 @@ export class Light implements ILight {
     }
 
     public destroy(): void {
+        // у светильников нет GPU-ресурсов, но
+        // если когда-нибудь добавишь shadow map — dispose тут:
         const light = this.instance as THREE.Light & {
             shadow?: { map?: THREE.Texture | null }
         };

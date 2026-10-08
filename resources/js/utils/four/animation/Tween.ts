@@ -57,14 +57,14 @@ export class Tween<T> {
 
     private lerp(a: T, b: T, t: number): T {
         if (typeof a === 'number' && typeof b === 'number') {
-            return (a + (b - a) * t) as T;
+            return ( a + ( b - a ) * t ) as T;
         }
         if (typeof a === 'object' && a && typeof b === 'object' && b) {
             const result = {} as T;
-            for (const key of Object.keys(a) as (keyof T)[]) {
+            for (const key of Object.keys(a) as ( keyof T )[]) {
                 const av = a[key] as unknown as number;
                 const bv = b[key] as unknown as number
-                ;(result[key] as unknown as number) = av + (bv - av) * t;
+                ;( result[key] as unknown as number ) = av + ( bv - av ) * t;
             }
             return result;
         }
