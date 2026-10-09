@@ -23,7 +23,7 @@
 </template>
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import ThreeMeshButton from '@/components/Three/ThreeMeshButton.vue';
+import ThreeMeshButton from '@/components/Four/Controls/FourControlsButton.vue';
 import { useTresGui } from '@/utils/tres/useTresGui';
 
 /* ---------------- Камера ---------------- */
@@ -32,8 +32,8 @@ const viewHeight = ref(20);
 const aspect = ref(window.innerWidth / window.innerHeight);
 const viewWidth = computed(() => viewHeight.value * aspect.value);
 
-const cameraRef = ref();
-useTresGui({ cameraRef });
+// const cameraRef = ref();
+// useTresGui({ cameraRef });
 
 /* ---------------- Позиционирование кнопок ---------------- */
 
@@ -71,7 +71,7 @@ const buttonPositions = computed(() => {
 
             return {
                 pos: [x, 0, bottomZ.value],
-                cb: () => emit('click', val.rot),
+                cb: () => emit('click', i, val.rot),
             };
         });
     }
@@ -92,7 +92,6 @@ onBeforeUnmount(() => {
 
 const emit = defineEmits(['click']);
 const onClick = (i: number): void => {
-    console.log('button', i);
-    emit('click');
+    emit('click', i);
 };
 </script>

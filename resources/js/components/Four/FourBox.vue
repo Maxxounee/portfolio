@@ -16,9 +16,9 @@ import * as THREE from 'three';
 import { useTresGui } from "@/utils/tres/useTresGui";
 
 const props = defineProps<{
-    position: [number, number, number]
+    position?: [number, number, number]
     rotation: [number, number, number]
-    color: string
+    color?: string
 }>();
 
 const boxRef = shallowRef<TresInstance | null>(null);

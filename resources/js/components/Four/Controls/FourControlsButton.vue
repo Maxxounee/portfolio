@@ -10,9 +10,12 @@
 </template>
 <script setup lang="ts">
 import { useGLTF, GLTFModel } from '@tresjs/cientos';
-import { computed, onMounted, watchEffect } from "vue";
+import { computed, onMounted, shallowRef, watch, watchEffect } from "vue";
+import * as THREE from 'three';
 
 const { state, nodes } = useGLTF('/3d/models/button.glb');
+
+
 import { gsap } from 'gsap';
 
 const props = defineProps<{
@@ -34,7 +37,10 @@ watchEffect(() => {
 
     root.position.set(...props.position);
     root.rotation.set(-45 * Math.PI / 180, 0, 0);
+
+
 });
+
 
 const onPointerEnter = () => {
     /* TODO: убрать дублирование с leave */
