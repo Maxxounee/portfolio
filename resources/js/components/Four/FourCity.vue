@@ -9,8 +9,10 @@ import { useGLTF } from '@tresjs/cientos';
 import { useLoop } from '@tresjs/core';
 import { shallowRef, watch } from 'vue';
 import * as THREE from 'three';
+import * as cityConfig from "@/config/four/city";
 
 /* --------------------------------------- */
+
 const emit = defineEmits<{
     loaded: [
         model: {
@@ -21,7 +23,7 @@ const emit = defineEmits<{
 }>();
 
 const { onBeforeRender } = useLoop();
-const { state: cityState, nodes: cityNodes } = useGLTF('/3d/models/city.glb');
+const { state: cityState, nodes: cityNodes } = useGLTF(cityConfig.files.city);
 const mixer = shallowRef<THREE.AnimationMixer | null>(null);
 
 function startSceneAnimations(gltf) {

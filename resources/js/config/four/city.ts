@@ -8,12 +8,12 @@ type CityViewArg = {
     html: Html;
 }
 
-interface CityViewStaticArg extends CityViewArg {
+export interface CityViewStaticArg extends CityViewArg {
     pos: THREE.Vector3;
-    angle: THREE.Vector3;
+    lookAt: THREE.Vector3;
 }
 
-interface CityViewForwardArg extends CityViewArg {
+export interface CityViewForwardArg extends CityViewArg {
     obj: THREE.Object3D;
     followDistance: number;
     followHeight: number;
@@ -35,12 +35,12 @@ abstract class CityView {
 
 export class CityViewStatic extends CityView {
     public pos: THREE.Vector3;
-    public angle: THREE.Vector3;
+    public lookAt: THREE.Vector3;
 
     constructor(arg: CityViewStaticArg) {
         super(arg);
         this.pos = arg.pos;
-        this.angle = arg.angle;
+        this.lookAt = arg.lookAt;
     }
 }
 
@@ -64,21 +64,27 @@ export class CityViewForward extends CityView {
     }
 }
 
+export type CityViewStaticOrForward = CityViewStatic | CityViewForward;
+/* --------------------- configs --------------------- */
+export const files = {
+    city: '/3d/models/city.glb',
+};
+
 export const cameraMode = {
     static: {
         welcome: {
             pos: new THREE.Vector3(10, 10, 10),
-            angle: new THREE.Vector3(6, 3, 2),
+            lookAt: new THREE.Vector3(6, 3, 2),
             html: { title: '' },
         },
         one: {
-            pos: new THREE.Vector3(10, 10, 10),
-            angle: new THREE.Vector3(10, 10, 10),
+            pos: new THREE.Vector3(15, 10, 10),
+            lookAt: new THREE.Vector3(6, 3, 2),
             html: { title: '' },
         },
         two: {
             pos: new THREE.Vector3(-10, 8, -5),
-            angle: new THREE.Vector3(10, 10, 10),
+            lookAt: new THREE.Vector3(6, 3, 2),
             html: { title: '' },
         }
     },

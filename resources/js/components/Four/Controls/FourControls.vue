@@ -15,7 +15,7 @@
     />
     <TresAmbientLight :intensity="1"/>
     <ThreeMeshButton
-        v-for="(val, i) in buttonPositions"
+        v-for="(val, i) in buttons"
         :key="i"
         :position="val.pos"
         @click="val.cb"
@@ -25,6 +25,8 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import ThreeMeshButton from '@/components/Four/Controls/FourControlsButton.vue';
 import { useTresGui } from '@/utils/tres/useTresGui';
+import { useCityStore } from "@/store/city";
+
 
 /* ---------------- Камера ---------------- */
 
@@ -32,18 +34,15 @@ const viewHeight = ref(20);
 const aspect = ref(window.innerWidth / window.innerHeight);
 const viewWidth = computed(() => viewHeight.value * aspect.value);
 
-// const cameraRef = ref();
-// useTresGui({ cameraRef });
-
 /* ---------------- Позиционирование кнопок ---------------- */
 
+const cityStore = useCityStore();
 const buttonCount = 3;
 const buttonWidth = 2;
 const gap = 0.3;
 const bottomMarginPx = 0;
 
 const unitsPerPixel = computed(() => viewHeight.value / window.innerHeight);
-const bottomMargin = computed(() => bottomMarginPx * unitsPerPixel.value);
 
 const bottomZ = computed(() =>
     viewHeight.value / 2 - 1.4,
@@ -51,30 +50,15 @@ const bottomZ = computed(() =>
 
 const totalWidth = buttonCount * buttonWidth + (buttonCount - 1) * gap;
 
-// const buttonPositions = computed(() =>
-//
-//     Array.from({ length: buttonCount }, (_, i) => {
-//         const x = -totalWidth / 2 + buttonWidth / 2 + i * (buttonWidth + gap);
-//         return {
-//             pos: [x, 0, bottomZ.value],
-//             cb: () => emit('click', -50),
-//         };
-//     }),
-// );
-const buttonPositions = computed(() => {
-        return [
-            { pos: undefined, rot: [0, -30, 0] },
-            { pos: undefined, rot: [0, 0, 30] },
-            { pos: undefined, rot: [0, 30, 0] },
-        ].map((val, i) => {
-            const x = -totalWidth / 2 + buttonWidth / 2 + i * (buttonWidth + gap);
+const buttons = computed(() =>
+    Array.from({ length: cityStore.cityViewObjects.length }, (val, i) => {
+        const x = -totalWidth / 2 + buttonWidth / 2 + i * (buttonWidth + gap);
 
-            return {
-                pos: [x, 0, bottomZ.value],
-                cb: () => emit('click', i, val.rot),
-            };
-        });
-    }
+        return {
+            pos: [x, 0, bottomZ.value],
+            cb: () => emit('click', i),
+        };
+    }),
 );
 
 
@@ -91,7 +75,4 @@ onBeforeUnmount(() => {
 });
 
 const emit = defineEmits(['click']);
-const onClick = (i: number): void => {
-    emit('click', i);
-};
 </script>
