@@ -5,15 +5,19 @@
             :clear-alpha="0"
             window-size
             class="FourWrapper__scene"
+            shadows
         >
             <FourPerspectiveCamera
                 ref="cameraRef"
             />
-            <FourLights/>
             <FourCity
                 @loaded="({ cityNodes }) => init(cityNodes)"
             />
+            <FourBuildingTest/>
             <FourCharacter ref="character"/>
+            <Suspense>
+                <FourLights/>
+            </Suspense>
             <!--            <OrbitControls/>-->
         </TresCanvas>
         <TresCanvas
@@ -39,6 +43,7 @@ import { OrbitControls } from "@tresjs/cientos";
 import FourCity from "@/components/Four/FourCity.vue";
 import * as cityConfig from "@/config/four/city";
 import { useCityStore } from "@/store/city";
+import FourBuildingTest from "@/components/Four/FourBuildingTest.vue";
 
 const cityStore = useCityStore();
 const cameraRef = ref<InstanceType<typeof ThreePerspectiveCamera> | null>(null);

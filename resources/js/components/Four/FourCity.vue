@@ -36,13 +36,22 @@ function startSceneAnimations(gltf) {
     });
 }
 
+function showShadows(gltf) {
+    gltf.scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+            obj.castShadow = true;
+            obj.receiveShadow = true;
+        }
+    });
+}
+
 watch(cityState, (gltf) => {
     if (!gltf?.scene) {
         return;
     }
 
     startSceneAnimations(gltf);
-
+    showShadows(gltf);
     emit('loaded', {
         cityScene: gltf.scene,
         cityNodes: cityNodes.value,
