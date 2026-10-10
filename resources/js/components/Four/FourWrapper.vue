@@ -9,7 +9,7 @@
             <FourPerspectiveCamera
                 :carRef="carObject"
                 :mode="cameraMode"
-                ref="camera"
+                ref="cameraRef"
             />
             <FourLights/>
             <!--            <FourBox :rotation="boxRotation"/>-->
@@ -30,7 +30,7 @@
 </template>
 <script setup lang="ts">
 import { TresCanvas } from '@tresjs/core';
-import { computed, ref } from 'vue';
+import { computed, ref, watch, watchEffect } from 'vue';
 import ThreePerspectiveCamera from "@/components/Four/FourPerspectiveCamera.vue";
 import FourCharacter from "@/components/Four/FourCharacter.vue";
 import FourLights from "@/components/Four/FourLights.vue";
@@ -39,55 +39,94 @@ import FourControls from "@/components/Four/Controls/FourControls.vue";
 import { OrbitControls } from "@tresjs/cientos";
 import FourCity from "@/components/Four/FourCity.vue";
 import * as THREE from 'three';
+import { CameraModeMap, cameraModes, cameraModesKeys } from "@/config/four/camera";
+import * as cityConfig from "@/config/four/city";
 
-type Vec3 = [number, number, number];
 
-
-const boxRotation = ref<Vec3>([0, 0, 0]);
-const camera = ref<InstanceType<typeof ThreePerspectiveCamera> | null>(null);
-const character = ref();
+const cameraRef = ref<InstanceType<typeof ThreePerspectiveCamera> | null>(null);
 const cityRef = ref<InstanceType<typeof FourCity> | null>(null);
 
 const carObject = computed<THREE.Object3D | undefined>(() => {
     return cityRef.value?.carObject;
 });
 
-
-const onRotateClick = (i, [x, y, z]): void => {
-    x = x ?? boxRotation.value[0];
-    y = y ?? boxRotation.value[1];
-    z = z ?? boxRotation.value[2];
-
-    boxRotation.value = [
-        (boxRotation.value[0] + x),
-        (boxRotation.value[1] + y),
-        (boxRotation.value[2] + z),
-    ];
-
-    character.value.playAnimation('Jump_Full_Short');
-    toggleCameraPosition(i);
-};
-type arg = [angle: number, height: number];
-
-type CameraMode = 'static-1' | 'static-2' | 'follow'
-
-const modes: CameraMode[] = [
-    'static-1',
-    'static-2',
-    'follow'
+const objects = [
+    carObject,
 ];
 
-const cameraMode = ref<CameraMode>(modes[0]);
+class ObjStore {
+    protected static _instance: [];
+
+    constructor(objects) {
+        if (ObjStore._instance.length) {
+            return ObjStore._instance;
+        }
+
+        ObjStore._instance.push(...objects);
+    }
+
+    get instance() {
+        return ObjStore._instance;
+    }
+}
+
+function init(objArr) {
+    console.log(objArr);
+    for (const obj of objArr) {
+        if (!obj?.value || !(obj.value instanceof THREE.Object3D)) {
+            return;
+        }
+    }
+
+    const staticConfig = cityConfig.cameraMode.static;
+    const forwardConfig = cityConfig.cameraMode.forward;
+
+    const getForwardValues = (conf) => {
+        const obj = objArr.find((value) => value.name === conf.modelName);
+
+        if (!obj) {
+            console.log(`FourWrapper.init(). Модель "${conf.modelName} не найдена"`);
+        }
+
+        return {
+            ...conf,
+            obj,
+        };
+    };
+
+    const getStaticValues = (conf) => {
+        return {
+            ...conf,
+        };
+    };
+
+    const arr = [
+        new cityConfig.CityViewStatic({
+            ...getStaticValues(staticConfig.welcome),
+        }),
+        new cityConfig.CityViewStatic({
+            ...getStaticValues(staticConfig.one),
+        }),
+        new cityConfig.CityViewStatic({
+            ...getStaticValues(staticConfig.two),
+        }),
+        new cityConfig.CityViewForward({
+            ...getForwardValues(forwardConfig.one),
+        }),
+    ];
+}
+
+watch(objects, init, { immediate: true });
+
+const cameraMode = ref<CameraModeMap>(cameraModesKeys[0]);
+
+const onRotateClick = (i, [x, y, z]): void => {
+    toggleCameraPosition(i);
+};
+
 
 const toggleCameraPosition = (i: number): void => {
-    // const pos: arg[] = [
-    //     [0, 2],
-    //     [-140, 5],
-    //     [-70, 1],
-    // ];
-
-
-    cameraMode.value = modes[i];
+    cameraMode.value = cameraModesKeys[i];
 };
 </script>
 <style scoped lang="scss">

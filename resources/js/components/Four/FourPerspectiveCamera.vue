@@ -1,6 +1,6 @@
 <template>
     <TresPerspectiveCamera
-        ref="cameraComponentRef"
+        ref="cameraRef"
         :fov="75"
         :near="0.1"
         :far="1000"
@@ -12,40 +12,38 @@ import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import { gsap } from 'gsap';
 import * as THREE from 'three';
 import type { TresInstance } from '@tresjs/core';
+import {
+    cameraModesStatic,
+    cameraModesFollow,
+    type CameraModeMap,
+    cameraModes,
+    isFollowModeObject, isStaticModeObject
+} from "@/config/four/camera";
+import * as cityConfig from "@/config/four/city";
 
-/* ---------------- Props ---------------- */
-
+/* ---------------- INIT  ---------------- */
 const props = defineProps<{
-    mode: 'static-1' | 'static-2' | 'follow'
+    mode: CameraModeMap;
     carRef: THREE.Object3D | undefined
 }>();
 
-/* ---------------- Ссылка на камеру ---------------- */
-
-const cameraComponentRef = shallowRef<TresInstance | null>(null);
+/* --------------- Instance --------------- */
+const cameraRef = shallowRef<TresInstance | null>(null);
 
 const camera = computed<THREE.PerspectiveCamera | null>(() => {
-    const ref = cameraComponentRef.value;
-    return ref instanceof THREE.PerspectiveCamera ? ref : null;
+    const value: unknown = cameraRef.value;
+    return value instanceof THREE.PerspectiveCamera ? value : null;
 });
 
-/* ---------------- Статические позиции ---------------- */
+/* --------------- Camera Config --------------- */
+const welcomeLookAt = cityConfig.cameraMode.static.welcome.angle;
 
-const staticPositions: Record<'static-1' | 'static-2', THREE.Vector3> = {
-    'static-1': new THREE.Vector3(10, 10, 10),
-    'static-2': new THREE.Vector3(-10, 8, -5),
-};
+const MODEL_SCALER = 0.1;
 
-const staticLookAt = new THREE.Vector3(0, 0, 0);
-
-/* ---------------- Параметры follow-режима ---------------- */
-
-const carLength = 0.1;
-const followDistanceBack = carLength * 3;
-const followHeight = carLength * 2;
-const lookAheadDistance = carLength * 4;
-const lookAtHeight = carLength * 0.5;
-const dirSmoothing = 0.3;
+const followDistanceBack = MODEL_SCALER * 3;
+const followHeight = MODEL_SCALER * 10;
+const lookAtHeight = MODEL_SCALER * 0.5;
+const dirSmoothing = 0.1;
 
 /* ---------------- Параметры GSAP ---------------- */
 
@@ -75,14 +73,13 @@ const flyTo = (
     onComplete?: () => void,
 ): void => {
     const cam = camera.value;
+
     if (!cam) return;
 
-    // вычисляем целевой кватернион через временную камеру
     const tmp = new THREE.PerspectiveCamera();
     tmp.position.copy(targetPosition);
     tmp.lookAt(targetLookAt);
 
-    // анимируем позицию
     gsap.to(cam.position, {
         x: targetPosition.x,
         y: targetPosition.y,
@@ -91,7 +88,6 @@ const flyTo = (
         ease: transitionEase,
     });
 
-    // анимируем поворот через кватернион
     gsap.to(cam.quaternion, {
         x: tmp.quaternion.x,
         y: tmp.quaternion.y,
@@ -107,29 +103,31 @@ const flyTo = (
 
 /* ---------------- Применение режима ---------------- */
 
-const applyMode = (mode: 'static-1' | 'static-2' | 'follow'): void => {
-    if (mode === 'follow') {
-        // для follow просто ждём следующий кадр — там камера сама начнёт следовать
+const applyMode = (key): void => {
+    const mode = cameraModes[key];
+
+    if (isStaticModeObject(mode)) {
+        isTransitioning.value = true;
+        flyTo(
+            mode.pos,
+            welcomeLookAt,
+            () => {
+                isTransitioning.value = false;
+            });
+    } else if (isFollowModeObject(mode)) {
         hasPrev = false;
         isTransitioning.value = false;
-        return;
     }
-
-    isTransitioning.value = true;
-    flyTo(staticPositions[mode], staticLookAt, () => {
-        isTransitioning.value = false;
-    });
 };
 
 /* ---------------- Жизненный цикл ---------------- */
 
 onMounted(() => {
-    if (props.mode !== 'follow') {
-        // при монтировании — сразу ставим камеру, без анимации
+    if (props.mode !== 'follow1') {
         const cam = camera.value;
         if (cam) {
-            cam.position.copy(staticPositions[props.mode]);
-            cam.lookAt(staticLookAt);
+            cam.position.copy(cameraModesStatic[props.mode].pos);
+            cam.lookAt(welcomeLookAt);
             cam.updateProjectionMatrix();
         }
     }
@@ -137,8 +135,8 @@ onMounted(() => {
 
 watch(
     () => props.mode,
-    (mode) => {
-        applyMode(mode);
+    (key) => {
+        applyMode(key);
     },
 );
 
@@ -153,7 +151,7 @@ onBeforeRender(() => {
     const cam = camera.value;
     if (!cam) return;
 
-    if (props.mode === 'follow') {
+    if (props.mode === 'follow1') {
         const car = props.carRef;
         if (!car) return;
 
@@ -174,7 +172,7 @@ onBeforeRender(() => {
         desiredPosition.y += followHeight;
 
         desiredLookAt.copy(carWorldPos);
-        desiredLookAt.addScaledVector(movementDir, lookAheadDistance);
+        desiredLookAt.addScaledVector(movementDir, 1);
         desiredLookAt.y += lookAtHeight;
 
         // позиция — плавно догоняем
