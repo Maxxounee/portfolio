@@ -41,11 +41,15 @@ import FourCity from "@/components/Four/FourCity.vue";
 import * as THREE from 'three';
 import { CameraModeMap, cameraModes, cameraModesKeys } from "@/config/four/camera";
 import * as cityConfig from "@/config/four/city";
+import { useCityStore } from "@/store/city";
 
+const cityStore = useCityStore();
 
 const cameraRef = ref<InstanceType<typeof ThreePerspectiveCamera> | null>(null);
 const cityRef = ref<InstanceType<typeof FourCity> | null>(null);
-
+const cityScene = computed<THREE.Scene | undefined>(() => {
+    return cityRef.value?.scene;
+});
 const carObject = computed<THREE.Object3D | undefined>(() => {
     return cityRef.value?.carObject;
 });
@@ -70,19 +74,27 @@ class ObjStore {
     }
 }
 
-function init(objArr) {
-    console.log(objArr);
-    for (const obj of objArr) {
-        if (!obj?.value || !(obj.value instanceof THREE.Object3D)) {
-            return;
-        }
+function init(cityScene) {
+    console.log(cityScene);
+    if (!cityScene.isReady || !cityScene.nodes) {
+        return;
     }
+    // return;
+    // for (const obj of cityScene.nodes) {
+    //     if (!obj?.value || !(obj.value instanceof THREE.Object3D)) {
+    //         return;
+    //     }
+    // }
+    const nodes = cityScene.nodes.value;
+    console.log('nodes', nodes);
 
     const staticConfig = cityConfig.cameraMode.static;
     const forwardConfig = cityConfig.cameraMode.forward;
 
     const getForwardValues = (conf) => {
-        const obj = objArr.find((value) => value.name === conf.modelName);
+        const obj = nodes.find((el) => {
+            return el.value.name === conf.modelName;
+        });
 
         if (!obj) {
             console.log(`FourWrapper.init(). Модель "${conf.modelName} не найдена"`);
@@ -114,9 +126,19 @@ function init(objArr) {
             ...getForwardValues(forwardConfig.one),
         }),
     ];
+
+    cityStore.pushCityViewObjects(arr);
+    console.log(cityStore.cityViewObjects);
 }
 
-watch(objects, init, { immediate: true });
+
+watch(cityScene, (i, k) => {
+    if (cityScene.value?.isReady) {
+        cityScene.value.then(() => {
+            init(cityScene.value);
+        });
+    }
+}, { immediate: true });
 
 const cameraMode = ref<CameraModeMap>(cameraModesKeys[0]);
 
