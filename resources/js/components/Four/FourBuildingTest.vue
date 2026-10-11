@@ -33,8 +33,8 @@ interface InstanceData {
 const SAFE_ZONE = { width: 20, depth: 50 };
 const CITY_BOUNDS = { width: 150, depth: 150 };
 const BUILDING_FOOTPRINT = 4;
-const SPACING = 2;
 const JITTER = 3;
+const SPACING = 2;
 
 /** Базовые высоты — размеры геометрий. */
 const HEIGHTS = [5, 7, 8] as const;
