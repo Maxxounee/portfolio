@@ -1,111 +1,185 @@
 <template>
-    <Merged v-if="meshes1" :meshes="meshes1">
-        <Instance
-            v-for="(pos, i) in positions1"
-            :key="`b1-${i}`"
-            :batch="'building_A'"
-            :position="pos"
-        />
-    </Merged>
-    <Merged v-if="meshes2" :meshes="meshes2">
-        <Instance
-            v-for="(pos, i) in positions2"
-            :key="`b2-${i}`"
-            :batch="'building_B'"
-            :position="pos"
-        />
-    </Merged>
-    <Merged v-if="meshes3" :meshes="meshes3">
-        <Instance
-            v-for="(pos, i) in positions3"
-            :key="`b3-${i}`"
-            :batch="'building_C'"
-            :position="pos"
-        />
-    </Merged>
+    <template v-for="(item, i) in buildings" :key="i">
+        <Instances
+            v-if="item.mesh"
+            :geometry="item.mesh.geometry"
+            :material="item.mesh.material"
+        >
+            <Instance
+                v-for="(inst, k) in positions[i]"
+                :key="`b-${i}-${k}`"
+                :position="inst.pos"
+                :scale="inst.scale"
+            />
+        </Instances>
+    </template>
 </template>
 <script setup lang="ts">
-import { computed, nextTick, watch } from 'vue';
+import { computed } from 'vue';
 import * as THREE from 'three';
-import { Merged, Instance, useGLTF } from '@tresjs/cientos';
-import { useTres } from "@tresjs/core";
-
-const { nodes: nodes1 } = useGLTF('/3d/models/building/building_A.glb');
-const { nodes: nodes2 } = useGLTF('/3d/models/building/building_B.glb');
-const { nodes: nodes3 } = useGLTF('/3d/models/building/building_C.glb');
-
-/* ---------------- Безопасный computed ---------------- */
-
-function pickMesh(nodes: Record<string, THREE.Object3D> | undefined, name: string,
-): Record<string, THREE.Mesh> | null {
-    const mesh = nodes?.[name];
-    /*TODO: парсить по Buildng_N */
-   
-
-    if (!mesh || !('isMesh' in mesh) || !(mesh as THREE.Mesh).isMesh) {
-        return null;
-    }
-
-    return { [name]: mesh as THREE.Mesh };
-}
-
-const meshes1 = computed(() => pickMesh(nodes1.value, 'building_A'));
-const meshes2 = computed(() => pickMesh(nodes2.value, 'building_B'));
-const meshes3 = computed(() => pickMesh(nodes3.value, 'building_C'));
-
-/* ---------------- Позиции ---------------- */
+import { Instance, Instances } from '@tresjs/cientos';
 
 type Vec3 = [number, number, number]
 
+interface InstanceData {
+    pos: Vec3;
+    scale: Vec3;
+}
+
+/* ============================================================
+ *  Параметры
+ * ==========================================================*/
+
+const SAFE_ZONE = { width: 20, depth: 50 };
+const CITY_BOUNDS = { width: 150, depth: 150 };
+const BUILDING_FOOTPRINT = 4;
+const SPACING = 2;
+const JITTER = 3;
+
+/** Базовые высоты — размеры геометрий. */
+const HEIGHTS = [5, 7, 8] as const;
+
+/** Максимальная высота, до которой масштабируем на краю города. */
+const MAX_HEIGHT_FACTOR = 3;
+
+/* ============================================================
+ *  Базовые меши
+ * ==========================================================*/
+
+function createBuildingMesh(name: string, height: number, color: number): THREE.Mesh {
+    const geo = new THREE.BoxGeometry(
+        BUILDING_FOOTPRINT,
+        height,
+        BUILDING_FOOTPRINT,
+    );
+    // Origin внизу куба
+    geo.translate(0, height / 2, 0);
+
+    const mat = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.7,
+        metalness: 0.1,
+    });
+
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.name = name;
+    return mesh;
+}
+
+const buildings = computed(() =>
+    HEIGHTS.map((height, i) => ({
+        height,
+        mesh: createBuildingMesh(`building_${i}`, height, 0x374151),
+    })),
+);
+
+/* ============================================================
+ *  Генерация позиций
+ * ==========================================================*/
+
 interface GridOptions {
-    gridSize: number;
-    spacing: number;
+    bounds: { width: number; depth: number };
+    safe: { width: number; depth: number };
+    step: number;
     jitter: number;
 }
 
-function generateGrid({ gridSize, spacing, jitter }: GridOptions): Vec3[] {
+function generatePositions(options: GridOptions): Vec3[] {
+    const { bounds, safe, step, jitter } = options;
     const result: Vec3[] = [];
-    const offset = ((gridSize - 1) * spacing) / 2;
 
-    for (let x = 0; x < gridSize; x++) {
-        for (let z = 0; z < gridSize; z++) {
+    const halfW = bounds.width / 2;
+    const halfD = bounds.depth / 2;
+    const safeHalfW = safe.width / 2;
+    const safeHalfD = safe.depth / 2;
+
+    for (let x = -halfW; x <= halfW; x += step) {
+        for (let z = -halfD; z <= halfD; z += step) {
+            const inSafeX = Math.abs(x) < safeHalfW;
+            const inSafeZ = Math.abs(z) < safeHalfD;
+
+            if (inSafeX && inSafeZ) continue;
+
             const jx = (Math.random() - 0.5) * jitter;
             const jz = (Math.random() - 0.5) * jitter;
 
-            result.push([
-                x * spacing - offset + jx,
-                0,
-                z * spacing - offset + jz,
-            ]);
+            result.push([x + jx, 0, z + jz]);
         }
     }
+
     return result;
 }
 
-const allPositions = generateGrid({ gridSize: 15, spacing: 3.5, jitter: 1.5 });
+const allPositions = generatePositions({
+    bounds: CITY_BOUNDS,
+    safe: SAFE_ZONE,
+    step: BUILDING_FOOTPRINT + SPACING,
+    jitter: JITTER,
+});
 
-const positions1 = computed<Vec3[]>(() => allPositions.filter((_, i) => i % 3 === 0));
-const positions2 = computed<Vec3[]>(() => allPositions.filter((_, i) => i % 3 === 1));
-const positions3 = computed<Vec3[]>(() => allPositions.filter((_, i) => i % 3 === 2));
+/* ============================================================
+ *  Высота в зависимости от расстояния до центра
+ * ==========================================================*/
 
+/**
+ * Возвращает коэффициент высоты в зависимости от расстояния до центра.
+ * 0 — в центре, 1 — на самой границе города.
+ *
+ * centerBias = 0.0 → здания в центре низкие, на краю — высокие
+ * centerBias = 1.0 → здания в центре высокие, на краю — низкие
+ */
+function heightFactor(pos: Vec3, centerBias: number = 0): number {
+    const dist = Math.hypot(pos[0], pos[2]);
+    const maxDist = Math.hypot(
+        CITY_BOUNDS.width / 2,
+        CITY_BOUNDS.depth / 2,
+    );
+    const t = Math.min(dist / maxDist, 1);
 
-const { scene } = useTres();
+    // centerBias = 0 → t (низко в центре, высоко на краю)
+    // centerBias = 1 → 1 - t (высоко в центре, низко на краю)
+    return t * (1 - centerBias) + (1 - t) * centerBias;
+}
 
-const applyShadows = async () => {
-    await nextTick();
-    await nextTick();
+/**
+ * Считает масштаб по Y для экземпляра.
+ * Никогда не меньше 1.0 — базовые меши уже минимальны.
+ */
+function scaleForInstance(
+    pos: Vec3,
+    baseHeight: number,
+    centerBias: number,
+): Vec3 {
+    const factor = heightFactor(pos, centerBias);
+    const targetHeight = baseHeight + (MAX_HEIGHT_FACTOR - 1) * baseHeight * factor;
+    const scaleY = targetHeight / baseHeight;
 
-    scene.value?.traverse((obj) => {
-        if (obj instanceof THREE.InstancedMesh) {
-            obj.castShadow = true;
-            obj.receiveShadow = true;
-        }
-    });
-};
+    // Округление до 2 знаков, чтобы матрицы не раздувались
+    const s = Math.round(scaleY * 100) / 100;
+    return [1, s, 1];
+}
 
-watch([meshes1, meshes2, meshes3], ([m1, m2, m3]) => {
-    if (m1 && m2 && m3) {
-        applyShadows();
-    }
+/* ============================================================
+ *  Распределение по типам и подготовка данных
+ * ==========================================================*/
+
+/** Куда базируем: 0 — низко в центре, 1 — высоко в центре. */
+const CENTER_BIAS = 0;
+
+function assignType(): 0 | 1 | 2 {
+    const r = Math.random();
+    if (r < 0.6) return 0;
+    if (r < 0.9) return 1;
+    return 2;
+}
+
+const positions: InstanceData[][] = [[], [], []];
+
+allPositions.forEach((pos) => {
+    const type = assignType();
+    const baseHeight = HEIGHTS[type];
+    const scale = scaleForInstance(pos, baseHeight, CENTER_BIAS);
+
+    positions[type].push({ pos, scale });
 });
 </script>

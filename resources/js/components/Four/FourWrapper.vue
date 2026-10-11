@@ -15,12 +15,13 @@
             <FourCity
                 @loaded="({ cityNodes }) => init(cityNodes)"
             />
+            <FourCityTest/>
             <FourFog/>
             <FourBuildingTest/>
             <FourCharacter ref="character"/>
             <FourLights/>
             <FourFloor/>
-            <FourEffectComposer v-if="false"/>
+            <FourEffectComposer v-if="true"/>
         </TresCanvas>
         <TresCanvas
             v-if="!mainStore.isDev"
@@ -51,6 +52,7 @@ import FourEffectComposer from "@/components/Four/FourEffectComposer.vue";
 import * as cityConfig from "@/config/four/city";
 import { useCityStore } from "@/store/city";
 import { useMainStore } from "@/store/main";
+import FourCityTest from "@/components/Four/FourCityTest.vue";
 
 
 const mainStore = useMainStore();

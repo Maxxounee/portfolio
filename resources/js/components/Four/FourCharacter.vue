@@ -1,6 +1,6 @@
 <template>
     <TresGroup
-        :position="[2.5, 0, -1.4]"
+        :position="[2.5, 4, -1.4]"
         :rotation="[0, 1, 0]"
     >
         <primitive v-if="state?.scene" :object="state.scene"/>

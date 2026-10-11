@@ -13,6 +13,10 @@ import { templateCompilerOptions } from '@tresjs/core';
 import path from 'node:path';
 
 export default defineConfig({
+    base: '/portfolio/', // или явно '/имя-репозитория/'
+    build: {
+        outDir: 'dist', // ← может быть другое значение, например 'public/build'
+    },
     plugins: [
         ...lazyPlugins(() => [
             laravel({
