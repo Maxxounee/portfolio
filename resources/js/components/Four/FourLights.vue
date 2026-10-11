@@ -1,8 +1,8 @@
 <template>
-    <!-- KEY: тёплое солнце, отбрасывает тени -->
+    <!-- KEY:  -->
     <TresDirectionalLight
         :position="[15, 25, 10]"
-        :intensity="1"
+        :intensity="0.8"
         :color="0xffe8c4"
         cast-shadow
         :shadow-mapSize-width="2048"

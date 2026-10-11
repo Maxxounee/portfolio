@@ -40,7 +40,7 @@ function pickMesh(nodes: Record<string, THREE.Object3D> | undefined, name: strin
 ): Record<string, THREE.Mesh> | null {
     const mesh = nodes?.[name];
     /*TODO: парсить по Buildng_N */
-    console.log(nodes);
+   
 
     if (!mesh || !('isMesh' in mesh) || !(mesh as THREE.Mesh).isMesh) {
         return null;

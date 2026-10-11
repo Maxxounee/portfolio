@@ -1,50 +1,59 @@
 <template>
     <div class="FourWrapper">
         <TresCanvas
-            alpha
-            :clear-alpha="0"
-            window-size
             class="FourWrapper__scene"
+            :clear-color="cityConfig.colors.background"
+            window-size
             shadows
         >
+            <FourDevCamera
+                v-if="mainStore.isDev"
+            />
             <FourPerspectiveCamera
                 ref="cameraRef"
             />
             <FourCity
                 @loaded="({ cityNodes }) => init(cityNodes)"
             />
+            <FourFog/>
             <FourBuildingTest/>
             <FourCharacter ref="character"/>
-            <Suspense>
-                <FourLights/>
-            </Suspense>
-            <!--            <OrbitControls/>-->
+            <FourLights/>
+            <FourFloor/>
+            <FourEffectComposer v-if="false"/>
         </TresCanvas>
         <TresCanvas
+            v-if="!mainStore.isDev"
             alpha
             :clear-alpha="0"
             class="FourWrapper__ui"
         >
             <FourControls
-                @click="onRotateClick"
+                @click="setCameraView"
             />
         </TresCanvas>
     </div>
 </template>
 <script setup lang="ts">
-import { TresCanvas } from '@tresjs/core';
 import { ref, } from 'vue';
+import { TresCanvas } from '@tresjs/core';
 import ThreePerspectiveCamera from "@/components/Four/FourPerspectiveCamera.vue";
 import FourCharacter from "@/components/Four/FourCharacter.vue";
 import FourLights from "@/components/Four/FourLights.vue";
 import FourPerspectiveCamera from "@/components/Four/FourPerspectiveCamera.vue";
 import FourControls from "@/components/Four/Controls/FourControls.vue";
-import { OrbitControls } from "@tresjs/cientos";
 import FourCity from "@/components/Four/FourCity.vue";
+import FourBuildingTest from "@/components/Four/FourBuildingTest.vue";
+import FourDevCamera from "@/components/Four/FourDevCamera.vue";
+import FourFog from "@/components/Four/FourFog.vue";
+import FourFloor from "@/components/Four/FourFloor.vue";
+import FourEffectComposer from "@/components/Four/FourEffectComposer.vue";
 import * as cityConfig from "@/config/four/city";
 import { useCityStore } from "@/store/city";
-import FourBuildingTest from "@/components/Four/FourBuildingTest.vue";
+import { useMainStore } from "@/store/main";
 
+
+const mainStore = useMainStore();
 const cityStore = useCityStore();
 const cameraRef = ref<InstanceType<typeof ThreePerspectiveCamera> | null>(null);
 
@@ -88,19 +97,15 @@ function init(cityNodes) {
     ];
 
     cityStore.pushCityViewObjects(arr);
-    cameraRef.value.setView(arr[0]);
+
+    if (cameraRef.value) {
+        cameraRef.value.setView(arr[0]);
+
+    }
 }
 
-
-/* TODO кнопкес. Обращаться к камере вместо пропсов  */
-const onRotateClick = (i): void => {
-    toggleCameraPosition(i);
-};
-
-
-const toggleCameraPosition = (i: number): void => {
-    cameraRef.value.setView(cityStore.cityViewObjects[i]);
-
+const setCameraView = (configIndex: number): void => {
+    cameraRef.value.setView(cityStore.cityViewObjects[configIndex]);
 };
 </script>
 <style scoped lang="scss">

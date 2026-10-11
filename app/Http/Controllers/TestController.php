@@ -10,6 +10,10 @@ class TestController extends Controller {
         return Inertia::render('Test', []);
     }
 
+    public function temp() {
+        return Inertia::render('Temp', []);
+    }
+
     public function test() {
         $test = request()->all();
         //        var_dump($test);

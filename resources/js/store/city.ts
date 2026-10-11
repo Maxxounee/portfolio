@@ -24,6 +24,6 @@ export const useCityStore = defineStore('city', () => {
     return {
         cityViewObjects,
         sceneIsReady,
-        pushCityViewObjects
+        pushCityViewObjects,
     };
 });

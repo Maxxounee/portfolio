@@ -71,7 +71,6 @@ const onPointerLeave = () => {
 };
 
 const press = (): void => {
-    console.log('pres');
     emit('click');
     /* TODO блокировка анимаций ховера при работае анимации клика */
     const top = nodes.value?.top;

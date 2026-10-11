@@ -70,6 +70,10 @@ export const files = {
     city: '/3d/models/city.glb',
 };
 
+export const colors = {
+    background: '#700e24',
+};
+
 export const cameraMode = {
     static: {
         welcome: {
