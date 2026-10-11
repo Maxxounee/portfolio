@@ -12,6 +12,8 @@ import { defineConfig, lazyPlugins } from 'vite-plus';
 import { templateCompilerOptions } from '@tresjs/core';
 import path from 'node:path';
 
+const isStaticBuild = process.env.STATIC_BUILD === 'true';
+
 export default defineConfig({
     base: '/portfolio/', // или явно '/имя-репозитория/'
     build: {
@@ -30,6 +32,7 @@ export default defineConfig({
                         weights: [400, 500, 600],
                     }),
                 ],
+                ...(isStaticBuild ? [] : [wayfinder({ formVariants: true })]),
             }),
             inertia(),
             tailwindcss(),
